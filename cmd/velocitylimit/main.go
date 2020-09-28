@@ -11,10 +11,12 @@ import (
 	"github.com/milind/velocitylimit/config"
 
 	"github.com/milind/velocitylimit/io"
+	validate "github.com/milind/velocitylimit/validate"
 )
 
 func main() {
 	boolPtr := flag.Bool("recover", false, "recover last run")
+	stringPtr := flag.String("backend", "memory", "backend for the service. memory or sqlite")
 	flag.Parse()
 	config.RecoverMode = *boolPtr
 	fmt.Println("recover:", *boolPtr)
@@ -32,7 +34,11 @@ func main() {
 		//log
 		panic(err)
 	}
-
+	validator, err := validate.NewValidator(*stringPtr)
+	if err != nil {
+		//log
+		panic(err)
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() {
@@ -47,7 +53,7 @@ func main() {
 		fmt.Println("Received Shutdown")
 		cancel()
 	}()
-	io.Process(ctx, input, output)
+	io.Process(ctx, input, output, validator)
 
 	//should wait for graceful shutdown
 }
