@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"time"
 
 	dal "github.com/milind/velocitylimit/validate/internal"
@@ -26,16 +27,22 @@ type DepositStatus struct {
 	Time   time.Time
 }
 
-// Rules indicate velocity limit rules
-type Rules struct {
+// VLRules indicate velocity limit rules
+type VLRules struct {
 	DayLimit          float64
 	WeekLimit         float64
 	MaxAttemptsPerDay uint
+}
+
+//Rules ...
+type Rule interface {
+	Do(context.Context, *Deposit) (bool, error)
 }
 
 //DataStore ...
 type DataStore interface {
 	RetrieveCustomerTxn(custID, loadID int) (*dal.Transaction, error)
 	RetrieveCustomerTxns(custID int) ([]*dal.Transaction, error)
+	RetrieveRecentCustomerTxns(custID int, numberOfRecentTxn uint) ([]*dal.Transaction, error)
 	SaveCustomerTxn(txn *dal.Transaction) error
 }

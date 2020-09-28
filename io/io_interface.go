@@ -56,7 +56,7 @@ func Process(ctx context.Context, input Ingester, output Sink, validator *valida
 			}
 			result, err := validator.Process(deposit)
 			if err != nil {
-				fmt.Printf("Fund %s not accepted. Error: %v\n", data, err)
+				fmt.Printf("Fund %s not processed. Error: %v\n", data, err)
 				continue
 			}
 			fundStatus, err := postProcess(result)

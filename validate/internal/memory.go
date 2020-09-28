@@ -32,6 +32,21 @@ func (m *memoryDataStore) RetrieveCustomerTxns(custID int) ([]*Transaction, erro
 	return nil, nil
 }
 
+//RetrieveRecentCustomerTxns get all customer trasactions ...
+func (m *memoryDataStore) RetrieveRecentCustomerTxns(custID int, numberOfRecentTxn uint) ([]*Transaction, error) {
+	var recentTxns []*Transaction
+	if data, ok := a[custID]; ok {
+
+		for i := len(data) - 1; i >= 0 && numberOfRecentTxn > 0; i-- {
+
+			recentTxns = append(recentTxns, data[i])
+			numberOfRecentTxn = numberOfRecentTxn - 1
+		}
+		return recentTxns, nil
+	}
+	return nil, nil
+}
+
 //SaveCustomerTxn ...
 func (m *memoryDataStore) SaveCustomerTxn(txn *Transaction) error {
 	a[txn.CustomerID] = append(a[txn.CustomerID], txn)
