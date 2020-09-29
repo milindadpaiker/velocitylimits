@@ -18,7 +18,7 @@ const (
 //Incidentally it is same as domain object Deposit, but that is not necessary
 type Transaction struct {
 	CustomerID uint `gorm:"primaryKey"`
-	ID         int
+	ID         int  `gorm:"primaryKey"`
 	LoadAmount float64
 	Time       time.Time
 	Status     Status
