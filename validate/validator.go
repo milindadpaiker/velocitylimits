@@ -28,17 +28,21 @@ func BuildRulesChain(cfg config.Config, ds DataStore) []Rule {
 func NewValidator(backend string) (*Validator, error) {
 	//create backing datastore first
 	var ds DataStore
+	var err error
 	switch backend {
 	case "memory":
 		ds = dal.NewMemoryDataStore()
 	case "sqlite":
-		return nil, fmt.Errorf("ErrSqliteNotImplemented")
+		ds, err = dal.NewSqliteDataStore()
+		if err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("ErrInvalidBackend")
 	}
 
 	rc := BuildRulesChain(config.Configuration, ds)
-	return &Validator{dal: dal.NewMemoryDataStore(), rulechain: rc}, nil
+	return &Validator{dal: ds, rulechain: rc}, nil
 }
 
 //Process is the maain validation functions that calls inidividual rules on incoming transaction.
@@ -61,7 +65,6 @@ func (v *Validator) Process(inFund *Deposit) (*DepositStatus, error) {
 
 	var validTxn = true
 	var accepted bool
-
 	//chain through various rules and validate
 	for i := 0; i < len(v.rulechain) && validTxn; i++ {
 		validTxn, err = v.rulechain[i].Do(ctx, inFund)
@@ -73,7 +76,6 @@ func (v *Validator) Process(inFund *Deposit) (*DepositStatus, error) {
 			return &DepositStatus{}, err
 		}
 	}
-
 	//create the db model instance of txn and save
 	txn := &dal.Transaction{
 		CustomerID: inFund.CustomerID,
@@ -111,6 +113,5 @@ func (v *Validator) txnDuplicate(ctx context.Context, inFund *Deposit) (bool, er
 			return true, fmt.Errorf("Original transaction on %v", t.Time)
 		}
 	}
-
 	return false, err
 }

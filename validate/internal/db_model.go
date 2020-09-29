@@ -1,6 +1,8 @@
 package dal
 
-import "time"
+import (
+	"time"
+)
 
 //Status represents customer transaction status:- valid/invalid
 type Status int
@@ -15,8 +17,8 @@ const (
 //Transaction db model for transction object.
 //Incidentally it is same as domain object Deposit, but that is not necessary
 type Transaction struct {
+	CustomerID uint `gorm:"primaryKey"`
 	ID         int
-	CustomerID uint
 	LoadAmount float64
 	Time       time.Time
 	Status     Status
