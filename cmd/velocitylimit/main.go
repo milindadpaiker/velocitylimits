@@ -21,7 +21,9 @@ func main() {
 	boolPtr := flag.Bool("append", false, "only applicable when sink is a file. Appends results to given outfile")
 	inFilePtr := flag.String("infile", "input.txt", "ingestion of funds through text file")
 	outFilePtr := flag.String("outfile", "output.txt", "output file to send fund status")
-	stringPtr := flag.String("backend", "memory", "datastore for the validation service. Choice: memory or sqlite")
+	stringPtr := flag.String("backend", "memory", "datastore for the validation service. Options: memory or sqlite")
+	stdinPtr := flag.Bool("stdin", false, "When set to true ingestion of funds will be through terminal. Do not set any other ingestion mode if this true.")
+	stdoutPtr := flag.Bool("stdout", false, "When set to true output will be sent to the terminal. Do not set any other sink mode if this true")
 
 	var input io.Ingester
 	var output io.Sink
@@ -41,22 +43,31 @@ func main() {
 		log.Panicf("Failed to load configuration from file %s. Error: %v", *configPtr, err)
 	}
 
-	input, err = io.NewInputFile(*inFilePtr)
-	if err != nil {
-		log.Panicf("Failed to load ingestion file %s. Error: %v", *inFilePtr, err)
+	//set ingestion. Use factory pattern in future.
+	if *stdinPtr {
+		input, err = io.NewInputTerminal()
+		if err != nil {
+			log.Panicf("Failed to load ingestion file %s. Error: %v", *inFilePtr, err)
+		}
+	} else {
+		input, err = io.NewInputFile(*inFilePtr)
+		if err != nil {
+			log.Panicf("Failed to load ingestion file %s. Error: %v", *inFilePtr, err)
+		}
 	}
-	// input, err = io.NewInputTerminal(*inFilePtr)
-	// if err != nil {
-	// 	log.Panicf("Failed to load ingestion file %s. Error: %v", *inFilePtr, err)
-	// }
-	output, err = io.NewOutputFile(*outFilePtr)
-	if err != nil {
-		log.Panicf("Failed to load output file %s. Error: %v", *outFilePtr, err)
+
+	if *stdoutPtr {
+		output, err = io.NewOutputTerminal()
+		if err != nil {
+			log.Panicf("Failed to load output file %s. Error: %v", *outFilePtr, err)
+		}
+	} else {
+		output, err = io.NewOutputFile(*outFilePtr)
+		if err != nil {
+			log.Panicf("Failed to load output file %s. Error: %v", *outFilePtr, err)
+		}
 	}
-	// output, err = io.NewOutputTerminal(*outFilePtr)
-	// if err != nil {
-	// 	log.Panicf("Failed to load output file %s. Error: %v", *outFilePtr, err)
-	// }
+
 	validator, err := validate.NewValidator(*stringPtr)
 	if err != nil {
 		log.Panicf("Failed to load velocity limits validation module. Error: %v", err)

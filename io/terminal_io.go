@@ -13,12 +13,12 @@ type Terminal struct {
 }
 
 //NewInputTerminal returns terminal implmentation for Ingester interface
-func NewInputTerminal(fName string) (*Terminal, error) {
+func NewInputTerminal() (*Terminal, error) {
 	return &Terminal{}, nil
 }
 
 //NewOutputTerminal returns terminal implmentation for Sink interface
-func NewOutputTerminal(fName string) (*Terminal, error) {
+func NewOutputTerminal() (*Terminal, error) {
 	return &Terminal{}, nil
 }
 

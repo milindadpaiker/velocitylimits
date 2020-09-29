@@ -18,6 +18,7 @@ func NewDailyAttemptsRule(cfg config.Config, ds DataStore) *dailyAttemptsRule {
 //Do for dailyAttemptsRule validates if total number transactions per day is within limits
 func (da *dailyAttemptsRule) Do(ctx context.Context, deposit *Deposit) (bool, error) {
 	//Get recent customer transactions.Not all. As many as max daily limit
+	//clarification: get only recent valid txns or all txns?
 	//txn, err := da.dal.GetLastNTxns(deposit.CustomerID, da.attempts)
 	txn, err := da.dal.GetLastNValidTxns(deposit.CustomerID, da.attempts)
 	if err != nil {
