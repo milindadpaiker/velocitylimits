@@ -2,7 +2,6 @@ package validate
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/milind/velocitylimit/config"
 )
@@ -20,10 +19,9 @@ func NewDailyLimitsRule(cfg config.VelocityLimitConfig, ds DataStore) *dailyLimi
 func (da *dailyLimitsRule) Do(ctx context.Context, deposit *Deposit) (bool, error) {
 	//low hanging fruit
 	if deposit.LoadAmount > da.dayLimit {
-		fmt.Printf("DailyLimit-faillure %+v\n", deposit)
 		return false, nil
 	}
-	txn, err := da.dal.RetrieveRecentCustomerTxns(deposit.CustomerID, da.attempts)
+	txn, err := da.dal.GetLastNValidTxns(deposit.CustomerID, da.attempts)
 	if err != nil {
 		return false, err
 	}
@@ -35,7 +33,6 @@ func (da *dailyLimitsRule) Do(ctx context.Context, deposit *Deposit) (bool, erro
 			}
 		}
 		if deposit.LoadAmount > (da.dayLimit - currentDailyTotal) {
-			fmt.Printf("DailyLimit-faillure %+v\n", deposit)
 			return false, nil
 		}
 	}

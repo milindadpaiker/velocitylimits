@@ -47,10 +47,13 @@ func NewValidator(backend string) (*Validator, error) {
 
 //Process is the maain validation functions that calls inidividual rules on incoming transaction.
 func (v *Validator) Process(inFund *Deposit) (*DepositStatus, error) {
-	//create context so that already fetched values can be passed around through rules
-	//This way each rule need not access DB if previous rule has already fetched data.
+	//create context so that already fetched values can be passed around into rules
+	//This way each rule need not access DB if previous rule has already fetched required data.
 	ctx := context.Background()
 
+	//two-fold responsibility
+	//1. To identify and ignore repeat transaction (repeating loadId for a customer)
+	//2. If programm is in recovery mode/completing last incomplete run, it avoids re-processing already processed funds
 	isDuplicate, err := v.txnDuplicate(ctx, inFund)
 	if isDuplicate {
 		return nil, fmt.Errorf("ErrDuplicateTxn: %s", err.Error())
@@ -60,49 +63,50 @@ func (v *Validator) Process(inFund *Deposit) (*DepositStatus, error) {
 		return nil, err
 	}
 
-	//chain through various rules and validate
-	for _, rule := range v.rulechain {
+	var validTxn = true
+	var accepted bool
 
-		valid, err := rule.Do(ctx, inFund)
+	//chain through various rules and validate
+	for i := 0; i < len(v.rulechain) && validTxn; i++ {
+		validTxn, err = v.rulechain[i].Do(ctx, inFund)
+		//if error do not process this txn. Neither treat as valid or invalid but return
 		if err != nil {
 			return &DepositStatus{}, err
 		}
-		if !valid {
-			return &DepositStatus{
-				ID:         inFund.ID,
-				CustomerID: inFund.CustomerID,
-				Accepted:   false,
-				Amount:     inFund.LoadAmount,
-				Time:       inFund.Time,
-			}, nil
-		}
 	}
-	//This is neither dupicate nor an invalid txn. Save and emit
 
-	//transform to db model for saving to database
+	//create the db model instance of txn and save
 	txn := &dal.Transaction{
 		CustomerID: inFund.CustomerID,
 		ID:         inFund.ID,
 		LoadAmount: inFund.LoadAmount,
 		Time:       inFund.Time,
 	}
+
+	if !validTxn {
+		txn.Status = dal.Invalid
+	} else {
+		txn.Status = dal.Valid
+		accepted = true
+	}
 	err = v.dal.SaveCustomerTxn(txn)
 	if err != nil {
-
+		//if failed to the txn return without emitting
+		fmt.Println("Failed to save customer transaction")
 		return nil, err
 	}
-	//return status as accepted
+	//if successfully processed and saved by validator module, only then emit the result to output
 	return &DepositStatus{
 		ID:         inFund.ID,
 		CustomerID: inFund.CustomerID,
-		Accepted:   true,
+		Accepted:   accepted,
 		Amount:     inFund.LoadAmount,
 		Time:       inFund.Time,
 	}, nil
 }
 
 func (v *Validator) txnDuplicate(ctx context.Context, inFund *Deposit) (bool, error) {
-	txn, err := v.dal.RetrieveCustomerTxns(inFund.CustomerID)
+	txn, err := v.dal.GetAllTxns(inFund.CustomerID)
 	if txn != nil {
 		for _, t := range txn {
 			if t.ID == inFund.ID {
@@ -111,5 +115,4 @@ func (v *Validator) txnDuplicate(ctx context.Context, inFund *Deposit) (bool, er
 		}
 	}
 	return false, err
-
 }

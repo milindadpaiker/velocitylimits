@@ -1,9 +1,12 @@
 package dal
 
-var a map[int][]*Transaction
+var (
+	validTxns, invalidTxns map[int][]*Transaction
+)
 
 func init() {
-	a = make(map[int][]*Transaction)
+	validTxns = make(map[int][]*Transaction)
+	invalidTxns = make(map[int][]*Transaction)
 }
 
 type memoryDataStore struct{}
@@ -12,30 +15,22 @@ func NewMemoryDataStore() *memoryDataStore {
 	return &memoryDataStore{}
 }
 
-//RetrieveCustomerTxn ...
-func (m *memoryDataStore) RetrieveCustomerTxn(custID, loadID int) (*Transaction, error) {
-	if data, ok := a[custID]; ok {
-		for _, t := range data {
-			if t.ID == loadID {
-				return t, nil
-			}
-		}
-	}
-	return nil, nil
-}
-
-//RetrieveCustomerTxns get all customer trasactions ...
-func (m *memoryDataStore) RetrieveCustomerTxns(custID int) ([]*Transaction, error) {
-	if data, ok := a[custID]; ok {
-		return data, nil
-	}
-	return nil, nil
-}
-
-//RetrieveRecentCustomerTxns get all customer trasactions ...
-func (m *memoryDataStore) RetrieveRecentCustomerTxns(custID int, numberOfRecentTxn uint) ([]*Transaction, error) {
+func (m *memoryDataStore) GetAllTxns(custID int) ([]*Transaction, error) {
 	var recentTxns []*Transaction
-	if data, ok := a[custID]; ok {
+	if data, ok := validTxns[custID]; ok {
+		recentTxns = append(recentTxns, data...)
+	}
+	if data, ok := invalidTxns[custID]; ok {
+		recentTxns = append(recentTxns, data...)
+	}
+	return recentTxns, nil
+
+}
+
+//GetLastNValidTxns gets last "N" valid transactions for a customer ID. numberOfRecentTxn represents N
+func (m *memoryDataStore) GetLastNValidTxns(custID int, numberOfRecentTxn uint) ([]*Transaction, error) {
+	var recentTxns []*Transaction
+	if data, ok := validTxns[custID]; ok {
 
 		for i := len(data) - 1; i >= 0 && numberOfRecentTxn > 0; i-- {
 
@@ -49,6 +44,10 @@ func (m *memoryDataStore) RetrieveRecentCustomerTxns(custID int, numberOfRecentT
 
 //SaveCustomerTxn ...
 func (m *memoryDataStore) SaveCustomerTxn(txn *Transaction) error {
-	a[txn.CustomerID] = append(a[txn.CustomerID], txn)
+	if txn.Status == Valid {
+		validTxns[txn.CustomerID] = append(validTxns[txn.CustomerID], txn)
+	} else {
+		invalidTxns[txn.CustomerID] = append(invalidTxns[txn.CustomerID], txn)
+	}
 	return nil
 }

@@ -2,7 +2,6 @@ package validate
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/milind/velocitylimit/config"
 )
@@ -22,7 +21,7 @@ func (da *weeklyLimitsRule) Do(ctx context.Context, deposit *Deposit) (bool, err
 	if deposit.LoadAmount > da.weekLimit {
 		return false, nil
 	}
-	txn, err := da.dal.RetrieveRecentCustomerTxns(deposit.CustomerID, 7*da.attempts)
+	txn, err := da.dal.GetLastNValidTxns(deposit.CustomerID, 7*da.attempts)
 	if err != nil {
 		return false, err
 	}
@@ -37,7 +36,6 @@ func (da *weeklyLimitsRule) Do(ctx context.Context, deposit *Deposit) (bool, err
 			}
 		}
 		if deposit.LoadAmount > (da.weekLimit - currentWeeklyTotal) {
-			fmt.Printf("WeeklyLimit-faillure %+v\n", deposit)
 			return false, nil
 		}
 	}

@@ -41,8 +41,7 @@ type Rule interface {
 
 //DataStore ...
 type DataStore interface {
-	RetrieveCustomerTxn(custID, loadID int) (*dal.Transaction, error)
-	RetrieveCustomerTxns(custID int) ([]*dal.Transaction, error)
-	RetrieveRecentCustomerTxns(custID int, numberOfRecentTxn uint) ([]*dal.Transaction, error)
 	SaveCustomerTxn(txn *dal.Transaction) error
+	GetAllTxns(custID int) ([]*dal.Transaction, error)
+	GetLastNValidTxns(custID int, numberOfRecentTxn uint) ([]*dal.Transaction, error)
 }

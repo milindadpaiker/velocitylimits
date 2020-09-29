@@ -17,7 +17,7 @@ func NewDailyAttemptsRule(cfg config.VelocityLimitConfig, ds DataStore) *dailyAt
 
 func (da *dailyAttemptsRule) Do(ctx context.Context, deposit *Deposit) (bool, error) {
 	//Get recent customer transactions.Not all. As many as max daily limit
-	txn, err := da.dal.RetrieveRecentCustomerTxns(deposit.CustomerID, da.attempts)
+	txn, err := da.dal.GetLastNValidTxns(deposit.CustomerID, da.attempts)
 	if err != nil {
 		return false, err
 	}
