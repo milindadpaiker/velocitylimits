@@ -27,7 +27,7 @@ func (f *Terminal) Write(ctx context.Context, ch <-chan string, wg *sync.WaitGro
 
 	bf := bufio.NewWriter(os.Stdout)
 	defer func() {
-		bf.Flush()
+		_ = bf.Flush()
 		wg.Done()
 	}()
 	for {
@@ -47,7 +47,7 @@ func (f *Terminal) Write(ctx context.Context, ch <-chan string, wg *sync.WaitGro
 				log.Println(err)
 				return
 			}
-			bf.Flush()
+			_ = bf.Flush()
 		case <-ctx.Done():
 			return
 		}

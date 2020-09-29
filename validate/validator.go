@@ -106,12 +106,11 @@ func (v *Validator) Process(inFund *Deposit) (*DepositStatus, error) {
 
 func (v *Validator) txnDuplicate(ctx context.Context, inFund *Deposit) (bool, error) {
 	txn, err := v.dal.GetAllTxns(inFund.CustomerID)
-	if txn != nil {
-		for _, t := range txn {
-			if t.ID == inFund.ID {
-				return true, fmt.Errorf("Original transaction on %v", t.Time)
-			}
+	for _, t := range txn {
+		if t.ID == inFund.ID {
+			return true, fmt.Errorf("Original transaction on %v", t.Time)
 		}
 	}
+
 	return false, err
 }

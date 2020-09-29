@@ -3,11 +3,14 @@ package io
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/milind/velocitylimit/config"
 
 	validate "github.com/milind/velocitylimit/validate"
 	"github.com/pkg/errors"
@@ -77,8 +80,8 @@ type fundStatus struct {
 	CustomerID string `json:"customer_id"`
 	Accepted   bool   `json:"accepted"`
 	//to be removed
-	Amount float64   `json:"amount"`
-	Time   time.Time `json:"time"`
+	// Amount float64   `json:"amount"`
+	// Time   time.Time `json:"time"`
 }
 
 func preProcess(fund string) (*validate.Deposit, error) {
@@ -91,7 +94,7 @@ func preProcess(fund string) (*validate.Deposit, error) {
 	}
 
 	// Remove the $ and convert to float64
-	inFund.LoadAmount = strings.Replace(inFund.LoadAmount, "$", "", 1)
+	inFund.LoadAmount = strings.Replace(inFund.LoadAmount, config.Configuration.Currency, "", 1)
 	loadAmnt, err := strconv.ParseFloat(inFund.LoadAmount, 64)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not conver load amount")
@@ -107,9 +110,12 @@ func preProcess(fund string) (*validate.Deposit, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not convert customerID")
 	}
+	if custID <= 0 {
+		return nil, fmt.Errorf("Invalid customerID %d. Must be postive number", custID)
+	}
 	a := &validate.Deposit{
 		ID:         loadID,
-		CustomerID: custID,
+		CustomerID: uint(custID),
 		LoadAmount: loadAmnt,
 		Time:       inFund.Time,
 	}
@@ -120,11 +126,11 @@ func postProcess(fundRslt *validate.DepositStatus) (string, error) {
 
 	tmp := fundStatus{
 		ID:         strconv.Itoa(fundRslt.ID),
-		CustomerID: strconv.Itoa(fundRslt.CustomerID),
+		CustomerID: strconv.Itoa(int(fundRslt.CustomerID)),
 		Accepted:   fundRslt.Accepted,
 		//to be removed
-		Amount: fundRslt.Amount,
-		Time:   fundRslt.Time.UTC(),
+		// Amount: fundRslt.Amount,
+		// Time:   fundRslt.Time.UTC(),
 	}
 	result, err := json.Marshal(tmp)
 	if err != nil {

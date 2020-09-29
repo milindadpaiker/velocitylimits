@@ -1,5 +1,6 @@
 {
     "dailyLimit" : 5000.00,
     "weeklyLimit" : 20000.00,
-    "maxAttemptsPerDay" : 3
+    "maxAttemptsPerDay" : 3,
+    "currency": "$"
 }

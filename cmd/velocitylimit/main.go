@@ -97,7 +97,7 @@ func loadConfig(cfgPath string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	decoder := json.NewDecoder(file)
 	return decoder.Decode(&config.Configuration)
 }

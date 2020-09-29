@@ -2,12 +2,12 @@ package dal
 
 var (
 	//Memory db model saves valid and invalid transactions in different maps
-	validTxns, invalidTxns map[int][]*Transaction
+	validTxns, invalidTxns map[uint][]*Transaction
 )
 
 func init() {
-	validTxns = make(map[int][]*Transaction)
-	invalidTxns = make(map[int][]*Transaction)
+	validTxns = make(map[uint][]*Transaction)
+	invalidTxns = make(map[uint][]*Transaction)
 }
 
 type memoryDataStore struct{}
@@ -17,7 +17,7 @@ func NewMemoryDataStore() *memoryDataStore {
 	return &memoryDataStore{}
 }
 
-func (m *memoryDataStore) GetAllTxns(custID int) ([]*Transaction, error) {
+func (m *memoryDataStore) GetAllTxns(custID uint) ([]*Transaction, error) {
 	var recentTxns []*Transaction
 	if data, ok := validTxns[custID]; ok {
 		recentTxns = append(recentTxns, data...)
@@ -30,7 +30,7 @@ func (m *memoryDataStore) GetAllTxns(custID int) ([]*Transaction, error) {
 }
 
 //GetLastNValidTxns gets last "N" valid transactions for a customer ID. numberOfRecentTxn represents N
-func (m *memoryDataStore) GetLastNValidTxns(custID int, numberOfRecentTxn uint) ([]*Transaction, error) {
+func (m *memoryDataStore) GetLastNValidTxns(custID uint, numberOfRecentTxn uint) ([]*Transaction, error) {
 	var recentTxns []*Transaction
 	if data, ok := validTxns[custID]; ok {
 
@@ -45,7 +45,7 @@ func (m *memoryDataStore) GetLastNValidTxns(custID int, numberOfRecentTxn uint) 
 }
 
 //GetLastNValidTxns gets last "N" valid transactions for a customer ID. numberOfRecentTxn represents N
-func (m *memoryDataStore) GetLastNTxns(custID int, numberOfRecentTxn uint) ([]*Transaction, error) {
+func (m *memoryDataStore) GetLastNTxns(custID uint, numberOfRecentTxn uint) ([]*Transaction, error) {
 	var recentValidTxns, recentInvalidTxns []*Transaction
 	var nv = numberOfRecentTxn
 	var niv = numberOfRecentTxn

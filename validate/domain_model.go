@@ -12,7 +12,7 @@ import (
 // Deposit is the individual fund load request
 type Deposit struct {
 	ID         int       `json:"id"`
-	CustomerID int       `json:"customer_id"`
+	CustomerID uint      `json:"customer_id"`
 	LoadAmount float64   `json:"load_amount"`
 	Time       time.Time `json:"time"`
 }
@@ -20,7 +20,7 @@ type Deposit struct {
 // DepositStatus shows status of individual fund load request
 type DepositStatus struct {
 	ID         int  `json:"id"`
-	CustomerID int  `json:"customer_id"`
+	CustomerID uint `json:"customer_id"`
 	Accepted   bool `json:"accepted"`
 	//to be removed
 	Amount float64
@@ -43,7 +43,7 @@ type Rule interface {
 //DataStore ...
 type DataStore interface {
 	SaveCustomerTxn(txn *dal.Transaction) error
-	GetAllTxns(custID int) ([]*dal.Transaction, error)
-	GetLastNValidTxns(custID int, numberOfRecentTxn uint) ([]*dal.Transaction, error)
-	GetLastNTxns(custID int, numberOfRecentTxn uint) ([]*dal.Transaction, error)
+	GetAllTxns(custID uint) ([]*dal.Transaction, error)
+	GetLastNValidTxns(custID uint, numberOfRecentTxn uint) ([]*dal.Transaction, error)
+	GetLastNTxns(custID uint, numberOfRecentTxn uint) ([]*dal.Transaction, error)
 }

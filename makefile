@@ -1,4 +1,4 @@
-TARGETNAME = platform-extended-attributes-retrieval-service
+TARGETNAME = velocity-limit-app
 
 ifeq ($(OS), Windows_NT)
 	TARGET = $(TARGETNAME).exe
@@ -6,16 +6,21 @@ else
 	TARGET = $(TARGETNAME)
 endif
 
-ifndef BINARY_PATH
-BINARY_PATH=$(GOPATH)/bin/linux_amd64/$(TARGETNAME)
-endif
 
 ifndef GO_OS
-GO_OS=linux
+GO_OS=windows
 endif
 
 ifndef GO_ARCH
 GO_ARCH=amd64
+endif
+
+ifndef CGOENABLED
+CGOENABLED=1
+endif
+
+ifndef BINARY_PATH
+BINARY_PATH=./bin/$(GO_OS)_$(GO_ARCH)/$(TARGETNAME)
 endif
 
 LINTERCOMMAND=golangci-lint
@@ -25,11 +30,51 @@ GOLANGCI_COMMIT=fb74c2e8e99afd50cef720595ccad516160c3974
 
 COVERAGE_THRESHOLD=80
 
-.PHONY: code-quality-print ## Run golang-cilint with printing to stdout
-code-quality-print: bin/golangci-lint
+packages = ./validate
+
+# global command
+.PHONY: all
+all: dependencies build test coverage code-quality-print
+
+.PHONY: dependencies
+dependencies:
+	echo "Installing dependencies"
+	go mod vendor
+
+
+.PHONY: build
+build:
+	echo "**Building linux binary**"
+	CGO_ENABLED=${CGOENABLED} GOOS=linux GOARCH=${GO_ARCH} go build -o ./bin/linux_$(GO_ARCH)/$(TARGETNAME) ./cmd/velocitylimit
+	cp ./cmd/velocitylimit/config.json ./bin/linux_$(GO_ARCH)/config.json
+	cp ./cmd/velocitylimit/input.txt ./bin/linux_$(GO_ARCH)/input.txt
+	
+	echo "**Building windows exe**"
+	CGO_ENABLED=${CGOENABLED} GOOS=windows GOARCH=${GO_ARCH} go build -o ./bin/windows_$(GO_ARCH)/$(TARGETNAME).exe ./cmd/velocitylimit
+	cp ./cmd/velocitylimit/config.json ./bin/windows_$(GO_ARCH)/config.json
+	cp ./cmd/velocitylimit/input.txt ./bin/windows_$(GO_ARCH)/input.txt
+
+
+.PHONY: test
+test:
+	echo "Unit testing"
+	@$(foreach package,$(packages), \
+		set -e; \
+		go test -coverprofile $(package)/cover.out -covermode=count $(package);)
+
+PHONY: cover-func
+coverage:
+	echo "mode: count" > cover-all.out
+	@$(foreach package,$(packages), \
+		tail -n +2 $(package)/cover.out >> cover-all.out;)
+	go tool cover -func=cover-all.out
+
+
+.PHONY: code-quality-print 
+code-quality-print:
+## downoad and install @ ./bin/golangci-lint if not already present
+## ifneq (,$(wildcard ./bin/golangci-lint))
+##     curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./bin v1.31.0
+## endif	
 	./bin/golangci-lint --exclude-use-default=false --out-format tab run ./...
 
-bin/golangci-lint: bin/golangci-lint-${GOLANGCI_VERSION}
-	@ln -sf golangci-lint-${GOLANGCI_VERSION} bin/golangci-lint
-bin/golangci-lint-${GOLANGCI_VERSION}:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin 1.31.0

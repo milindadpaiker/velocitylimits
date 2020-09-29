@@ -16,7 +16,7 @@ const (
 //Incidentally it is same as domain object Deposit, but that is not necessary
 type Transaction struct {
 	ID         int
-	CustomerID int
+	CustomerID uint
 	LoadAmount float64
 	Time       time.Time
 	Status     Status
