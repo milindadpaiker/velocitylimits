@@ -3,18 +3,20 @@ package validate
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/milind/velocitylimit/config"
 	dal "github.com/milind/velocitylimit/validate/internal"
 )
 
-//Validator ...
+//Validator struct holds the chain of rules it validates agaist and the backing datastore
 type Validator struct {
 	rulechain []Rule
 	dal       DataStore
 }
 
-func BuildRulesChain(cfg config.VelocityLimitConfig, ds DataStore) []Rule {
+//BuildRulesChain creates chain of rules
+func BuildRulesChain(cfg config.Config, ds DataStore) []Rule {
 	var rc []Rule
 	rc = append(rc, NewDailyAttemptsRule(cfg, ds))
 	rc = append(rc, NewDailyLimitsRule(cfg, ds))
@@ -29,19 +31,13 @@ func NewValidator(backend string) (*Validator, error) {
 	switch backend {
 	case "memory":
 		ds = dal.NewMemoryDataStore()
-		//return &Validator{dal: dal.NewMemoryDataStore(), rulechain: rc}, nil
 	case "sqlite":
-		return nil, fmt.Errorf("ErrNotImplemented")
+		return nil, fmt.Errorf("ErrSqliteNotImplemented")
 	default:
-		return nil, fmt.Errorf("ErrInvalidDataStore")
+		return nil, fmt.Errorf("ErrInvalidBackend")
 	}
 
-	//load config file and build rule chain
-	var cfg config.VelocityLimitConfig
-	cfg.DayLimit = 5000.00
-	cfg.WeekLimit = 20000.00
-	cfg.MaxAttemptsPerDay = 3
-	rc := BuildRulesChain(cfg, ds)
+	rc := BuildRulesChain(config.Configuration, ds)
 	return &Validator{dal: dal.NewMemoryDataStore(), rulechain: rc}, nil
 }
 
@@ -58,7 +54,7 @@ func (v *Validator) Process(inFund *Deposit) (*DepositStatus, error) {
 	if isDuplicate {
 		return nil, fmt.Errorf("ErrDuplicateTxn: %s", err.Error())
 	}
-	//if any other fault like DBAccessError treat it as error and do not process record
+	//if any other faults like DBAccessError treat it as error and do not process record
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +65,9 @@ func (v *Validator) Process(inFund *Deposit) (*DepositStatus, error) {
 	//chain through various rules and validate
 	for i := 0; i < len(v.rulechain) && validTxn; i++ {
 		validTxn, err = v.rulechain[i].Do(ctx, inFund)
+		if !validTxn {
+			log.Printf("valiation %s failed for transaction %+v", v.rulechain[i].String(), inFund)
+		}
 		//if error do not process this txn. Neither treat as valid or invalid but return
 		if err != nil {
 			return &DepositStatus{}, err
@@ -92,7 +91,7 @@ func (v *Validator) Process(inFund *Deposit) (*DepositStatus, error) {
 	err = v.dal.SaveCustomerTxn(txn)
 	if err != nil {
 		//if failed to the txn return without emitting
-		fmt.Println("Failed to save customer transaction")
+		log.Printf("Failed to save customer transaction. %+v", txn)
 		return nil, err
 	}
 	//if successfully processed and saved by validator module, only then emit the result to output

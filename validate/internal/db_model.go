@@ -2,10 +2,13 @@ package dal
 
 import "time"
 
+//Status represents customer transaction status:- valid/invalid
 type Status int
 
 const (
+	//Valid represents valid customer transaction after passing all rules
 	Valid Status = 1 + iota
+	//Invalid represents invalid customer transaction
 	Invalid
 )
 

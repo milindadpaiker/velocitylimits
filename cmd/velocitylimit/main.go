@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,32 +16,54 @@ import (
 )
 
 func main() {
-	boolPtr := flag.Bool("recover", false, "recover last run")
-	stringPtr := flag.String("backend", "memory", "backend for the service. memory or sqlite")
-	flag.Parse()
-	config.RecoverMode = *boolPtr
-	fmt.Println("recover:", *boolPtr)
+	configPtr := flag.String("config", "config.json", "configuration file for the application")
+	logPtr := flag.String("log", "velocitylimit.log", "log file for the application")
+	boolPtr := flag.Bool("append", false, "only applicable when sink is a file. Appends results to given outfile")
+	inFilePtr := flag.String("infile", "input.txt", "ingestion of funds through text file")
+	outFilePtr := flag.String("outfile", "output.txt", "output file to send fund status")
+	stringPtr := flag.String("backend", "memory", "datastore for the validation service. Choice: memory or sqlite")
 
 	var input io.Ingester
 	var output io.Sink
 	var err error
-	input, err = io.NewInputFile("input.txt")
+
+	flag.Parse()
+	config.AppendMode = *boolPtr
+
+	err = loadLogFile(*logPtr)
 	if err != nil {
-		//log
+		//Log
 		panic(err)
 	}
-	output, err = io.NewOutputFile("output.txt")
+	log.Println("Application started")
+	err = loadConfig(*configPtr)
 	if err != nil {
-		//log
-		panic(err)
+		log.Panicf("Failed to load configuration from file %s. Error: %v", *configPtr, err)
 	}
+
+	input, err = io.NewInputFile(*inFilePtr)
+	if err != nil {
+		log.Panicf("Failed to load ingestion file %s. Error: %v", *inFilePtr, err)
+	}
+	// input, err = io.NewInputTerminal(*inFilePtr)
+	// if err != nil {
+	// 	log.Panicf("Failed to load ingestion file %s. Error: %v", *inFilePtr, err)
+	// }
+	output, err = io.NewOutputFile(*outFilePtr)
+	if err != nil {
+		log.Panicf("Failed to load output file %s. Error: %v", *outFilePtr, err)
+	}
+	// output, err = io.NewOutputTerminal(*outFilePtr)
+	// if err != nil {
+	// 	log.Panicf("Failed to load output file %s. Error: %v", *outFilePtr, err)
+	// }
 	validator, err := validate.NewValidator(*stringPtr)
 	if err != nil {
-		//log
-		panic(err)
+		log.Panicf("Failed to load velocity limits validation module. Error: %v", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
 	go func() {
 		//Listen for Ctrl + C, so programm can shut gracefully
 		sig := make(chan os.Signal, 1)
@@ -50,10 +73,29 @@ func main() {
 			syscall.SIGTERM,
 			syscall.SIGQUIT)
 		<-sig
-		fmt.Println("Received Shutdown")
+		log.Println("Received Shutdown signal")
 		cancel()
 	}()
-	io.Process(ctx, input, output, validator)
 
-	//should wait for graceful shutdown
+	io.Process(ctx, input, output, validator)
+	log.Println("Application winding down")
+}
+
+func loadConfig(cfgPath string) error {
+	file, err := os.Open(cfgPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	return decoder.Decode(&config.Configuration)
+}
+
+func loadLogFile(logPath string) error {
+	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	log.SetOutput(file)
+	return nil
 }

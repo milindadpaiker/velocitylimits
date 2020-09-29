@@ -12,10 +12,11 @@ type dailyLimitsRule struct {
 	dal      DataStore
 }
 
-func NewDailyLimitsRule(cfg config.VelocityLimitConfig, ds DataStore) *dailyLimitsRule {
+func NewDailyLimitsRule(cfg config.Config, ds DataStore) *dailyLimitsRule {
 	return &dailyLimitsRule{dayLimit: cfg.DayLimit, attempts: cfg.MaxAttemptsPerDay, dal: ds}
 }
 
+//Do for dailyLimitsRule validates if total amount of transactions per day is within limits
 func (da *dailyLimitsRule) Do(ctx context.Context, deposit *Deposit) (bool, error) {
 	//low hanging fruit
 	if deposit.LoadAmount > da.dayLimit {
@@ -37,4 +38,8 @@ func (da *dailyLimitsRule) Do(ctx context.Context, deposit *Deposit) (bool, erro
 		}
 	}
 	return true, nil
+}
+
+func (da *dailyLimitsRule) String() string {
+	return "DailyLimitsRule"
 }

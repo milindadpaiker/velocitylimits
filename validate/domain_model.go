@@ -37,6 +37,7 @@ type VLRules struct {
 //Rules ...
 type Rule interface {
 	Do(context.Context, *Deposit) (bool, error)
+	String() string
 }
 
 //DataStore ...
@@ -44,4 +45,5 @@ type DataStore interface {
 	SaveCustomerTxn(txn *dal.Transaction) error
 	GetAllTxns(custID int) ([]*dal.Transaction, error)
 	GetLastNValidTxns(custID int, numberOfRecentTxn uint) ([]*dal.Transaction, error)
+	GetLastNTxns(custID int, numberOfRecentTxn uint) ([]*dal.Transaction, error)
 }

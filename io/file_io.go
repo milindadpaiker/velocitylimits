@@ -3,14 +3,12 @@ package io
 import (
 	"bufio"
 	"context"
-	"fmt"
+	"log"
 	"os"
 	"sync"
 
 	"github.com/milind/velocitylimit/config"
 )
-
-const recoveryFile = "recovery.txt"
 
 //File type implmenents ingester and Sink interface
 type File struct {
@@ -28,9 +26,8 @@ func NewInputFile(fName string) (*File, error) {
 
 //NewOutputFile returns File implmentation for Sink interface
 func NewOutputFile(fName string) (*File, error) {
-	//append because inca
 	var flag int
-	if config.RecoverMode {
+	if config.AppendMode {
 		flag = os.O_APPEND | os.O_WRONLY | os.O_CREATE
 	} else {
 		flag = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
@@ -59,12 +56,12 @@ func (f *File) Write(ctx context.Context, ch <-chan string, wg *sync.WaitGroup) 
 			//how about bf.WriteString(data+ "\n")?
 			_, err := bf.WriteString(data)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
 			_, err = bf.Write([]byte{'\n'})
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
 			bf.Flush()

@@ -12,10 +12,11 @@ type weeklyLimitsRule struct {
 	dal       DataStore
 }
 
-func NewWeeklyLimitsRule(cfg config.VelocityLimitConfig, ds DataStore) *weeklyLimitsRule {
+func NewWeeklyLimitsRule(cfg config.Config, ds DataStore) *weeklyLimitsRule {
 	return &weeklyLimitsRule{weekLimit: cfg.WeekLimit, dal: ds, attempts: cfg.MaxAttemptsPerDay}
 }
 
+//Do for weeklyLimitsRule validates if total amount of transactions per week is within limits
 func (da *weeklyLimitsRule) Do(ctx context.Context, deposit *Deposit) (bool, error) {
 	//low hanging fruit
 	if deposit.LoadAmount > da.weekLimit {
@@ -40,4 +41,8 @@ func (da *weeklyLimitsRule) Do(ctx context.Context, deposit *Deposit) (bool, err
 		}
 	}
 	return true, nil
+}
+
+func (da *weeklyLimitsRule) String() string {
+	return "WeeklyLimitsRule"
 }

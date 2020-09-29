@@ -1,9 +1,14 @@
 package config
 
-var RecoverMode bool
+var AppendMode bool
 
-type VelocityLimitConfig struct {
-	DayLimit          float64
-	WeekLimit         float64
-	MaxAttemptsPerDay uint
+type Config struct {
+	VelocityLimitConfig
 }
+type VelocityLimitConfig struct {
+	DayLimit          float64 `json:"dailyLimit"`
+	WeekLimit         float64 `json:"weeklyLimit"`
+	MaxAttemptsPerDay uint    `json:"maxAttemptsPerDay"`
+}
+
+var Configuration Config

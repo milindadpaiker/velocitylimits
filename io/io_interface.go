@@ -3,7 +3,7 @@ package io
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -51,17 +51,17 @@ func Process(ctx context.Context, input Ingester, output Sink, validator *valida
 			}
 			deposit, err := preProcess(data)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 			result, err := validator.Process(deposit)
 			if err != nil {
-				fmt.Printf("Fund %s not processed. Error: %v\n", data, err)
+				log.Printf("Fund %s not processed. Error: %v\n", data, err)
 				continue
 			}
 			fundStatus, err := postProcess(result)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 			out <- fundStatus

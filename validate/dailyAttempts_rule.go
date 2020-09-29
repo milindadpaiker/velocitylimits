@@ -11,16 +11,19 @@ type dailyAttemptsRule struct {
 	dal      DataStore
 }
 
-func NewDailyAttemptsRule(cfg config.VelocityLimitConfig, ds DataStore) *dailyAttemptsRule {
+func NewDailyAttemptsRule(cfg config.Config, ds DataStore) *dailyAttemptsRule {
 	return &dailyAttemptsRule{attempts: cfg.MaxAttemptsPerDay, dal: ds}
 }
 
+//Do for dailyAttemptsRule validates if total number transactions per day is within limits
 func (da *dailyAttemptsRule) Do(ctx context.Context, deposit *Deposit) (bool, error) {
 	//Get recent customer transactions.Not all. As many as max daily limit
+	//txn, err := da.dal.GetLastNTxns(deposit.CustomerID, da.attempts)
 	txn, err := da.dal.GetLastNValidTxns(deposit.CustomerID, da.attempts)
 	if err != nil {
 		return false, err
 	}
+
 	if len(txn) < int(da.attempts) {
 		return true, nil
 	}
@@ -33,4 +36,8 @@ func (da *dailyAttemptsRule) Do(ctx context.Context, deposit *Deposit) (bool, er
 		return false, nil
 	}
 	return true, nil
+}
+
+func (da *dailyAttemptsRule) String() string {
+	return "DailyAttemptsRule"
 }
