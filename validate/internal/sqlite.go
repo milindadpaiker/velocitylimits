@@ -5,21 +5,22 @@ import (
 	"gorm.io/gorm"
 )
 
-const dialect = "sqlite3"
-
 type sqliteDataStore struct {
 	conn *gorm.DB
 }
 
 //NewSqliteDataStore returns sqlite datastore
 func NewSqliteDataStore() (*sqliteDataStore, error) {
-	db, err := gorm.Open(sqlite.Open("test2.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("velocitylimits.db"), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&Transaction{})
+	err = db.AutoMigrate(&Transaction{})
+	if err != nil {
+		return nil, err
+	}
 	return &sqliteDataStore{conn: db}, nil
 }
 

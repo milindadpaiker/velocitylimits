@@ -1,5 +1,9 @@
 package dal
 
+import (
+	"fmt"
+)
+
 var (
 	//Memory db model saves valid and invalid transactions in different maps
 	validTxns, invalidTxns map[uint][]*Transaction
@@ -98,4 +102,24 @@ func (m *memoryDataStore) SaveCustomerTxn(txn *Transaction) error {
 		invalidTxns[txn.CustomerID] = append(invalidTxns[txn.CustomerID], txn)
 	}
 	return nil
+}
+
+//ClearData helper function for testing
+func (m *memoryDataStore) ClearData() {
+	for k := range validTxns {
+		delete(validTxns, k)
+	}
+	for k := range invalidTxns {
+		delete(invalidTxns, k)
+	}
+}
+
+//Print helper function for testing
+func (m *memoryDataStore) Print() {
+	for k := range validTxns {
+		fmt.Printf("validTxns: %d -> %d\n", k, len(validTxns[k]))
+	}
+	for k := range invalidTxns {
+		fmt.Printf("invalidTxns: %d -> %d\n", k, len(validTxns[k]))
+	}
 }

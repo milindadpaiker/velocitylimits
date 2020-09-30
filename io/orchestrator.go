@@ -113,8 +113,11 @@ func preProcess(fund string) (*validate.Deposit, error) {
 	if custID <= 0 {
 		return nil, fmt.Errorf("Invalid customerID %d. Must be postive number", custID)
 	}
+	if loadID <= 0 {
+		return nil, fmt.Errorf("Invalid loadID %d. Must be postive number", loadID)
+	}
 	a := &validate.Deposit{
-		ID:         loadID,
+		ID:         uint(loadID),
 		CustomerID: uint(custID),
 		LoadAmount: loadAmnt,
 		Time:       inFund.Time,
@@ -125,7 +128,7 @@ func preProcess(fund string) (*validate.Deposit, error) {
 func postProcess(fundRslt *validate.DepositStatus) (string, error) {
 
 	tmp := fundStatus{
-		ID:         strconv.Itoa(fundRslt.ID),
+		ID:         strconv.Itoa(int(fundRslt.ID)),
 		CustomerID: strconv.Itoa(int(fundRslt.CustomerID)),
 		Accepted:   fundRslt.Accepted,
 		//to be removed

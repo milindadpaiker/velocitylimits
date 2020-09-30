@@ -101,8 +101,8 @@ func (v *Validator) Process(inFund *Deposit) (*DepositStatus, error) {
 		ID:         inFund.ID,
 		CustomerID: inFund.CustomerID,
 		Accepted:   accepted,
-		Amount:     inFund.LoadAmount,
-		Time:       inFund.Time,
+		// Amount:     inFund.LoadAmount,
+		// Time:       inFund.Time,
 	}, nil
 }
 

@@ -3,10 +3,10 @@ package config
 var AppendMode bool
 
 type Config struct {
-	velocityLimitConfig
+	VelocityLimitConfig
 	Currency string
 }
-type velocityLimitConfig struct {
+type VelocityLimitConfig struct {
 	DayLimit          float64 `json:"dailyLimit"`
 	WeekLimit         float64 `json:"weeklyLimit"`
 	MaxAttemptsPerDay uint    `json:"maxAttemptsPerDay"`
