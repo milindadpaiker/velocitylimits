@@ -44,10 +44,10 @@ dependencies:
 
 .PHONY: build
 build:
-	##echo "**Building linux binary**"
-	##CGO_ENABLED=${CGOENABLED} GOOS=linux GOARCH=${GO_ARCH} go build -o ./bin/linux_$(GO_ARCH)/$(TARGETNAME) ./cmd/velocitylimit
-	##cp ./cmd/velocitylimit/config.json ./bin/linux_$(GO_ARCH)/config.json
-	##cp ./cmd/velocitylimit/input.txt ./bin/linux_$(GO_ARCH)/input.txt
+	echo "**Building linux binary**"
+	CGO_ENABLED=${CGOENABLED} GOOS=linux GOARCH=${GO_ARCH} go build -o ./bin/linux_$(GO_ARCH)/$(TARGETNAME) ./cmd/velocitylimit
+	cp ./cmd/velocitylimit/config.json ./bin/linux_$(GO_ARCH)/config.json
+	cp ./cmd/velocitylimit/input.txt ./bin/linux_$(GO_ARCH)/input.txt
 	
 	echo "**Building windows exe**"
 	CGO_ENABLED=${CGOENABLED} GOOS=windows GOARCH=${GO_ARCH} go build -o ./bin/windows_$(GO_ARCH)/$(TARGETNAME).exe ./cmd/velocitylimit
