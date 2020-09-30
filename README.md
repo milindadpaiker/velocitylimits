@@ -2,6 +2,15 @@
 
 Velocitylimits is a command-line application in Golang that accepts or declines attempts to load funds into customers' accounts in real-time based on pre-defined rules.
 
+Features:-
+
+* Support for multiple sources and sink
+* sqlite mode for resilient processing
+* Extensible architecture. New rules can be easily added.
+* Support for different currencies is a matter of configuration
+
+Limitations:-
+* Not safe for concurrent processing of incoming funds. Need to support "serializable" isolation level on DataAccessLayer(dal) to achieve concurrency.
 ## Installation
 
 Pre-requisites: Go version 1.13 and above
