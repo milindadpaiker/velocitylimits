@@ -72,9 +72,6 @@ coverage:
 
 .PHONY: code-quality-print 
 code-quality-print:
-## downoad and install @ ./bin/golangci-lint if not already present
-## ifneq (,$(wildcard ./bin/golangci-lint))
-##     curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./bin v1.31.0
-## endif	
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./bin v1.31.0
 	./bin/golangci-lint --exclude-use-default=false --out-format tab run ./...
 
