@@ -63,7 +63,7 @@ root@75d3a8ec19bf:/go/src/velocitylimits/bin/linux_amd64# ls
 config.json  input.txt  output.txt  velocity-limit-app  velocitylimit.log  velocitylimits.db
 ```
 
-velocity-limit-app is highly flexible and pluggable application. It is designed to accept input and emit output to/from various sources. Currently it supports file/terminal as input and sink, but supporting more options should be a breeze. See design section for details.
+velocity-limit-app is highly flexible and pluggable application. It is designed to accept input and emit output to/from various sources. Currently it supports file/terminal as input and sink, but supporting more options should be a breeze. See  [design doc](design.md) for details.
 Following example shows reading input from file "new_input.txt" and sending output to stdput
 
 ```python
