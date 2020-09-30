@@ -97,7 +97,7 @@ func preProcess(fund string) (*validate.Deposit, error) {
 	inFund.LoadAmount = strings.Replace(inFund.LoadAmount, config.Configuration.Currency, "", 1)
 	loadAmnt, err := strconv.ParseFloat(inFund.LoadAmount, 64)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not conver load amount")
+		return nil, errors.Wrap(err, "Could not convert load amount")
 	}
 
 	//load id must be numeric

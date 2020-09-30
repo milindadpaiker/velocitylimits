@@ -30,8 +30,8 @@ GOLANGCI_COMMIT=fb74c2e8e99afd50cef720595ccad516160c3974
 
 COVERAGE_THRESHOLD=80
 
-packages = ./validate
-
+packages = ./validate \
+           ./io
 # global command
 .PHONY: all
 all: dependencies build test coverage code-quality-print

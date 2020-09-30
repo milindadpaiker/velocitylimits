@@ -80,5 +80,6 @@ func (f *File) Read(ctx context.Context, ch chan<- string, wg *sync.WaitGroup) {
 		str := scanner.Text()
 		ch <- str
 	}
+	_ = f.file.Close()
 	close(ch)
 }
